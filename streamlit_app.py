@@ -212,7 +212,24 @@ def create_html():
     dob = st.session_state.dob.strftime('%d/%m/%Y')
     age_calc = date.today().year - st.session_state.dob.year
     
-    # [FIX] เพิ่ม <meta charset="UTF-8"> และ viewport เพื่อให้มือถืออ่านออก
+    # Helper เพื่อจัดการ List ให้แสดงผลสวยงามพร้อมวงเล็บ Other
+    def fmt_multi(val_list, ot_key):
+        txt = ", ".join(val_list)
+        if "Other" in val_list or "อื่นๆ" in val_list:
+            txt += f" ({st.session_state[ot_key]})"
+        return txt if txt else "-"
+
+    # เตรียมข้อมูล List ที่ต้อง join string
+    comorb_txt = fmt_multi(st.session_state.comorbidities, 'comorb_ot')
+    surg_det_txt = ", ".join(st.session_state.surg_details) if st.session_state.surgery == 'ใช่' else '-'
+    personnel_txt = fmt_multi(st.session_state.personnel, 'personnel_ot')
+    rehab_act_txt = fmt_multi(st.session_state.rehab_act, 'rehab_act_ot')
+    service_txt = fmt_multi(st.session_state.service, 'service_ot')
+    susp_txt = fmt_multi(st.session_state.suspension, 'susp_ot')
+    foot_txt = fmt_multi(st.session_state.foot, 'foot_ot')
+    knee_txt = fmt_multi(st.session_state.knee, 'knee_ot')
+    supp_src_txt = fmt_multi(st.session_state.supp_src, 'supp_src_ot')
+
     html = f"""
     <!DOCTYPE html>
     <html lang="th">
@@ -222,61 +239,91 @@ def create_html():
         <title>Report_{st.session_state.hn}</title>
         <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
         <style>
-            body {{ font-family: 'Sarabun', sans-serif; padding: 20px; color: #333; line-height: 1.6; }}
-            h1 {{ text-align: center; border-bottom: 2px solid #1F618D; padding-bottom: 10px; color: #1F618D; font-size: 1.5em; }}
-            .section {{ margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }}
-            .sec-head {{ color: #154360; font-weight: bold; font-size: 1.1em; margin-bottom: 10px; border-left: 4px solid #154360; padding-left: 8px; }}
+            body {{ font-family: 'Sarabun', sans-serif; padding: 20px; color: #333; line-height: 1.4; }}
+            h1 {{ text-align: center; border-bottom: 2px solid #1F618D; padding-bottom: 10px; color: #1F618D; font-size: 1.5em; margin-bottom: 5px; }}
+            .section {{ margin-top: 15px; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #eee; }}
+            .sec-head {{ color: #154360; font-weight: bold; font-size: 1.05em; margin-bottom: 8px; border-left: 4px solid #154360; padding-left: 8px; background: #ebf5fb; }}
             table {{ width: 100%; border-collapse: collapse; }}
-            td {{ padding: 6px; border-bottom: 1px solid #eee; vertical-align: top; font-size: 0.9em; }}
-            .lbl {{ font-weight: bold; width: 40%; color: #555; }}
-            .tug-box {{ text-align: center; border: 2px solid #1F618D; padding: 15px; margin-top: 20px; border-radius: 10px; background: #f0f8ff; }}
+            td {{ padding: 5px; border-bottom: 1px solid #f2f2f2; vertical-align: top; font-size: 0.85em; }}
+            .lbl {{ font-weight: bold; width: 35%; color: #555; }}
+            .tug-box {{ text-align: center; border: 2px solid #1F618D; padding: 10px; margin-top: 15px; border-radius: 10px; background: #f0f8ff; }}
             @media print {{ body {{ padding: 0; }} .section {{ break-inside: avoid; }} }}
         </style>
     </head>
     <body>
-        <div style="text-align:right; font-size:0.8em; color:gray;">พิมพ์เมื่อ: {datetime.now().strftime('%d/%m/%Y %H:%M')}</div>
+        <div style="text-align:right; font-size:0.7em; color:gray;">วันที่พิมพ์: {datetime.now().strftime('%d/%m/%Y %H:%M')}</div>
         <h1>แบบบันทึกข้อมูลกายอุปกรณ์ (Prosthesis Registry)</h1>
         
-        <div class="section"><div class="sec-head">1. ข้อมูลทั่วไป</div>
-        <table>
-            <tr><td class="lbl">1. วันเกิด (อายุ):</td><td>{dob} ({age_calc} ปี)</td></tr>
-            <tr><td class="lbl">2. เพศ:</td><td>{st.session_state.gender}</td></tr>
-            <tr><td class="lbl">3. ประเทศ:</td><td>{get_txt(st.session_state.country, 'country_ot')}</td></tr>
-            <tr><td class="lbl">4. จังหวัด:</td><td>{get_txt(st.session_state.province, 'province_ot')}</td></tr>
-            <tr><td class="lbl">5. สัญชาติ:</td><td>{get_txt(st.session_state.nationality, 'nationality_ot')}</td></tr>
-            <tr><td class="lbl">6. HN:</td><td>{st.session_state.hn}</td></tr>
-            <tr><td class="lbl">ชื่อ-นามสกุล:</td><td>{st.session_state.fname}</td></tr>
-            <tr><td class="lbl">7. น้ำหนัก/ส่วนสูง:</td><td>{st.session_state.weight} กก. / {st.session_state.height} ซม.</td></tr>
-        </table></div>
+        <div class="section">
+            <div class="sec-head">1. ข้อมูลทั่วไป (General Info)</div>
+            <table>
+                <tr><td class="lbl">HN / ชื่อ-นามสกุล:</td><td>{st.session_state.hn} / {st.session_state.fname}</td></tr>
+                <tr><td class="lbl">วันเกิด (อายุ):</td><td>{dob} ({age_calc} ปี)</td></tr>
+                <tr><td class="lbl">เพศ / สัญชาติ:</td><td>{st.session_state.gender} / {get_txt(st.session_state.nationality, 'nationality_ot')}</td></tr>
+                <tr><td class="lbl">ที่อยู่ (จังหวัด/ประเทศ):</td><td>{get_txt(st.session_state.province, 'province_ot')}, {get_txt(st.session_state.country, 'country_ot')}</td></tr>
+                <tr><td class="lbl">น้ำหนัก / ส่วนสูง:</td><td>{st.session_state.weight} กก. / {st.session_state.height} ซม.</td></tr>
+            </table>
+        </div>
 
-        <div class="section"><div class="sec-head">2. ข้อมูลทางการแพทย์</div>
-        <table>
-            <tr><td class="lbl">9. โรคประจำตัว:</td><td>{get_txt(st.session_state.comorbidities, 'comorb_ot')}</td></tr>
-            <tr><td class="lbl">10. สาเหตุ:</td><td>{get_txt(st.session_state.cause, 'cause_ot')}</td></tr>
-            <tr><td class="lbl">11. ปีที่ตัดขา:</td><td>{st.session_state.amp_year}</td></tr>
-            <tr><td class="lbl">12. ข้างที่ตัด:</td><td>{st.session_state.side}</td></tr>
-            <tr><td class="lbl">13. ระดับ:</td><td>{get_txt(st.session_state.level, 'level_ot')}</td></tr>
-            <tr><td class="lbl">17. K-Level:</td><td>{st.session_state.k_level}</td></tr>
-        </table></div>
+        <div class="section">
+            <div class="sec-head">2. ข้อมูลการตัดขาและสุขภาพ</div>
+            <table>
+                <tr><td class="lbl">โรคประจำตัว:</td><td>{comorb_txt}</td></tr>
+                <tr><td class="lbl">สาเหตุการตัดขา:</td><td>{get_txt(st.session_state.cause, 'cause_ot')}</td></tr>
+                <tr><td class="lbl">ปีที่ตัดขา / ข้างที่ตัด:</td><td>พ.ศ. {st.session_state.amp_year} / ขาข้าง{st.session_state.side}</td></tr>
+                <tr><td class="lbl">ระดับการตัดขา:</td><td>{get_txt(st.session_state.level, 'level_ot')}</td></tr>
+                <tr><td class="lbl">ตอขา (ความยาว/รูปทรง):</td><td>{st.session_state.stump_len} / {get_txt(st.session_state.stump_shape, 'shape_ot')}</td></tr>
+                <tr><td class="lbl">ประวัติผ่าตัดเพิ่มเติม:</td><td>{st.session_state.surgery} ({surg_det_txt})</td></tr>
+                <tr><td class="lbl">K-Level ก่อนตัด:</td><td>{st.session_state.k_level}</td></tr>
+            </table>
+        </div>
 
-        <div class="section"><div class="sec-head">3-4. กายอุปกรณ์</div>
-        <table>
-            <tr><td class="lbl">20. บริการ:</td><td>{get_txt(st.session_state.service, 'service_ot')}</td></tr>
-            <tr><td class="lbl">23. Socket:</td><td>{get_txt(st.session_state.socket, 'socket_ot')}</td></tr>
-            <tr><td class="lbl">25. Suspension:</td><td>{get_txt(st.session_state.suspension, 'susp_ot')}</td></tr>
-            <tr><td class="lbl">26. Foot:</td><td>{get_txt(st.session_state.foot, 'foot_ot')}</td></tr>
-        </table></div>
+        <div class="section">
+            <div class="sec-head">3. ข้อมูลการฟื้นฟู (Rehabilitation)</div>
+            <table>
+                <tr><td class="lbl">บุคลากรที่ดูแล:</td><td>{personnel_txt}</td></tr>
+                <tr><td class="lbl">ประวัติการฟื้นฟู:</td><td>{st.session_state.rehab}</td></tr>
+                <tr><td class="lbl">กิจกรรมที่เคยทำ:</td><td>{rehab_act_txt if st.session_state.rehab == 'เคย' else '-'}</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="sec-head">4. รายละเอียดกายอุปกรณ์ (Prosthesis)</div>
+            <table>
+                <tr><td class="lbl">การบริการครั้งนี้:</td><td>{service_txt}</td></tr>
+                <tr><td class="lbl">วันที่ (หล่อแบบ / ได้รับ):</td><td>{st.session_state.date_cast.strftime('%d/%m/%Y')} / {st.session_state.date_deliv.strftime('%d/%m/%Y')}</td></tr>
+                <tr><td class="lbl">Socket / Liner:</td><td>{get_txt(st.session_state.socket, 'socket_ot')} / {get_txt(st.session_state.liner, 'liner_ot')}</td></tr>
+                <tr><td class="lbl">Suspension System:</td><td>{susp_txt}</td></tr>
+                <tr><td class="lbl">Foot / Knee Unit:</td><td>{foot_txt} / {knee_txt if knee_txt else '-'}</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="sec-head">5. สังคมและการใช้งาน (Social & Mobility)</div>
+            <table>
+                <tr><td class="lbl">อุปกรณ์ช่วยเดิน:</td><td>{get_txt(st.session_state.assist, 'assist_ot')}</td></tr>
+                <tr><td class="lbl">การใช้งาน (ยืน / เดิน):</td><td>{st.session_state.stand_hr} ต่อวัน / {st.session_state.walk_hr} ต่อวัน</td></tr>
+                <tr><td class="lbl">ประวัติล้ม (6 เดือน):</td><td>{st.session_state.fall} {f'(ถี่ {st.session_state.fall_freq}, บาดเจ็บ: {st.session_state.fall_inj})' if st.session_state.fall == 'มี' else ''}</td></tr>
+                <tr><td class="lbl">ปัญหาสังคม (ตนเอง/ผู้อื่น):</td><td>{st.session_state.q31_1} / {st.session_state.q31_2}</td></tr>
+                <tr><td class="lbl">ปัญหางาน (ตนเอง/ผู้อื่น):</td><td>{st.session_state.q32_1} / {st.session_state.q32_2}</td></tr>
+                <tr><td class="lbl">การสนับสนุน (ครอบครัว/องค์กร):</td><td>{st.session_state.supp_fam} / {st.session_state.supp_org} ({supp_src_txt if st.session_state.supp_org == 'ใช่' else '-'})</td></tr>
+            </table>
+        </div>
 
         <div class="tug-box">
-            <h3>ผล TUG Test</h3>
-            <h1>{st.session_state.tug_avg:.2f} s</h1>
-            <h2>{st.session_state.tug_status}</h2>
+            <div style="font-weight:bold; color:#1F618D;">ผลการทดสอบ Timed Up and Go (TUG)</div>
+            <div style="font-size: 2em; font-weight: bold; margin: 5px 0;">{st.session_state.tug_avg:.2f} วินาที</div>
+            <div style="font-weight: bold; color: {'#C0392B' if st.session_state.tug_avg >= 13.5 else '#27AE60'};">
+                {st.session_state.tug_status}
+            </div>
+            <div style="font-size: 0.75em; color: #777; margin-top: 5px;">
+                (Trial 1: {st.session_state.t1}s, Trial 2: {st.session_state.t2}s, Trial 3: {st.session_state.t3}s)
+            </div>
         </div>
     </body>
     </html>
     """
     return html
-
 # ---------------------------------------------------------
 # 4. APP LAYOUT
 # ---------------------------------------------------------
