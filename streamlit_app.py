@@ -50,47 +50,49 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 2. SESSION STATE MANAGEMENT
+# 2. SESSION STATE MANAGEMENT (FIXED)
 # ---------------------------------------------------------
-if 'init' not in st.session_state:
-    defaults = {
-        # 1. General
-        'hn': '', 'fname': '', 'dob': date(1980, 1, 1), 'age': 0, 'gender': 'ชาย', 
-        'country': 'Thailand', 'country_ot': '',
-        'province': 'กรุงเทพมหานคร', 'province_ot': '',
-        'nationality': 'ไทย', 'nationality_ot': '',
-        'weight': 0.0, 'height': 0.0,
-        # 2. Medical
-        'comorbidities': [], 'comorb_ot': '',
-        'cause': 'อุบัติเหตุ', 'cause_ot': '',
-        'amp_year': 2560, 'side': 'ขวา', 'level': 'Transtibial', 'level_ot': '',
-        'stump_len': 'ปานกลาง', 'stump_shape': 'Cylindrical', 'shape_ot': '',
-        'surgery': 'ไม่ใช่', 'surg_details': [], 'k_level': 'K1',
-        # 3. Rehab
-        'personnel': [], 'personnel_ot': '',
-        'rehab': 'ไม่เคย', 'rehab_act': [], 'rehab_act_ot': '',
-        # 4. Prosthesis
-        'service': [], 'service_ot': '',
-        'date_cast': date.today(), 'date_deliv': date.today(),
-        'socket': 'PTB', 'socket_ot': '',
-        'liner': 'None', 'liner_ot': '',
-        'suspension': [], 'susp_ot': '',
-        'foot': [], 'foot_ot': '',
-        'knee': [], 'knee_ot': '', 
-        # 5. Social
-        'assist': 'ไม่ใช้', 'assist_ot': '',
-        'stand_hr': '1-3 ชั่วโมง', 'walk_hr': '1-3 ชั่วโมง',
-        'fall': 'ไม่', 'fall_freq': '', 'fall_inj': 'ไม่',
-        'q31_1': 'ไม่มีปัญหา (0-4%)', 'q31_2': 'ไม่มีปัญหา (0-4%)',
-        'q32_1': 'ไม่มีปัญหา (0-4%)', 'q32_2': 'ไม่มีปัญหา (0-4%)',
-        'supp_fam': 'ใช่', 'supp_org': 'ไม่ใช่', 'supp_src': [], 'supp_src_ot': '',
-        # TUG
-        'tug_running': False, 'start_time': None,
-        't1': 0.0, 't2': 0.0, 't3': 0.0, 'tug_avg': 0.0, 'tug_status': '-'
-    }
-    for k, v in defaults.items():
+# กำหนดค่าเริ่มต้นทั้งหมด
+defaults = {
+    # 1. General
+    'hn': '', 'fname': '', 'dob': date(1980, 1, 1), 'age': 0, 'gender': 'ชาย', 
+    'country': 'Thailand', 'country_ot': '',
+    'province': 'กรุงเทพมหานคร', 'province_ot': '',
+    'nationality': 'ไทย', 'nationality_ot': '',
+    'weight': 0.0, 'height': 0.0,
+    # 2. Medical
+    'comorbidities': [], 'comorb_ot': '',
+    'cause': 'อุบัติเหตุ', 'cause_ot': '',
+    'amp_year': 2560, 'side': 'ขวา', 'level': 'Transtibial', 'level_ot': '',
+    'stump_len': 'ปานกลาง', 'stump_shape': 'Cylindrical', 'shape_ot': '',
+    'surgery': 'ไม่ใช่', 'surg_details': [], 'k_level': 'K1',
+    # 3. Rehab
+    'personnel': [], 'personnel_ot': '',
+    'rehab': 'ไม่เคย', 'rehab_act': [], 'rehab_act_ot': '',
+    # 4. Prosthesis
+    'service': [], 'service_ot': '',
+    'date_cast': date.today(), 'date_deliv': date.today(),
+    'socket': 'PTB', 'socket_ot': '',
+    'liner': 'None', 'liner_ot': '',
+    'suspension': [], 'susp_ot': '',
+    'foot': [], 'foot_ot': '',
+    'knee': [], 'knee_ot': '', 
+    # 5. Social
+    'assist': 'ไม่ใช้', 'assist_ot': '',
+    'stand_hr': '1-3 ชั่วโมง', 'walk_hr': '1-3 ชั่วโมง',
+    'fall': 'ไม่', 'fall_freq': '', 'fall_inj': 'ไม่',
+    'q31_1': 'ไม่มีปัญหา (0-4%)', 'q31_2': 'ไม่มีปัญหา (0-4%)',
+    'q32_1': 'ไม่มีปัญหา (0-4%)', 'q32_2': 'ไม่มีปัญหา (0-4%)',
+    'supp_fam': 'ใช่', 'supp_org': 'ไม่ใช่', 'supp_src': [], 'supp_src_ot': '',
+    # TUG
+    'tug_running': False, 'start_time': None,
+    't1': 0.0, 't2': 0.0, 't3': 0.0, 'tug_avg': 0.0, 'tug_status': '-'
+}
+
+# [FIX] เช็คทีละตัวแปร เพื่อป้องกัน Error หากมีตัวแปรใหม่เพิ่มเข้ามาทีหลัง
+for k, v in defaults.items():
+    if k not in st.session_state:
         st.session_state[k] = v
-    st.session_state.init = True
 
 # Helper Functions
 def get_txt(val, ot_key):
@@ -206,7 +208,7 @@ def save_to_csv():
     st.toast(f'✅ บันทึก HN: {st.session_state.hn} เรียบร้อย!', icon='💾')
 
 # ---------------------------------------------------------
-# 3. HTML REPORT (META TAG FIXED)
+# 3. HTML REPORT (UPDATED TO SHOW ALL DATA)
 # ---------------------------------------------------------
 def create_html():
     dob = st.session_state.dob.strftime('%d/%m/%Y')
@@ -324,6 +326,7 @@ def create_html():
     </html>
     """
     return html
+
 # ---------------------------------------------------------
 # 4. APP LAYOUT
 # ---------------------------------------------------------
