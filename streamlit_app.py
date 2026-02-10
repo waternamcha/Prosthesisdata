@@ -259,13 +259,37 @@ def create_html():
             <tr><td class="lbl">17. K-Level:</td><td>{st.session_state.k_level}</td></tr>
         </table></div>
 
-        <div class="section"><div class="sec-head">3-4. กายอุปกรณ์</div>
-        <table>
-            <tr><td class="lbl">20. บริการ:</td><td>{get_txt(st.session_state.service, 'service_ot')}</td></tr>
-            <tr><td class="lbl">23. Socket:</td><td>{get_txt(st.session_state.socket, 'socket_ot')}</td></tr>
-            <tr><td class="lbl">25. Suspension:</td><td>{get_txt(st.session_state.suspension, 'susp_ot')}</td></tr>
-            <tr><td class="lbl">26. Foot:</td><td>{get_txt(st.session_state.foot, 'foot_ot')}</td></tr>
-        </table></div>
+<div class="section">
+            <div class="sec-head">3. ข้อมูลการฟื้นฟู (Rehabilitation)</div>
+            <table>
+                <tr><td class="lbl">บุคลากรที่ดูแล:</td><td>{personnel_txt}</td></tr>
+                <tr><td class="lbl">ประวัติการฟื้นฟู:</td><td>{st.session_state.rehab}</td></tr>
+                <tr><td class="lbl">กิจกรรมที่เคยทำ:</td><td>{rehab_act_txt if st.session_state.rehab == 'เคย' else '-'}</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="sec-head">4. รายละเอียดกายอุปกรณ์ (Prosthesis)</div>
+            <table>
+                <tr><td class="lbl">การบริการครั้งนี้:</td><td>{service_txt}</td></tr>
+                <tr><td class="lbl">วันที่ (หล่อแบบ / ได้รับ):</td><td>{st.session_state.date_cast.strftime('%d/%m/%Y')} / {st.session_state.date_deliv.strftime('%d/%m/%Y')}</td></tr>
+                <tr><td class="lbl">Socket / Liner:</td><td>{get_txt(st.session_state.socket, 'socket_ot')} / {get_txt(st.session_state.liner, 'liner_ot')}</td></tr>
+                <tr><td class="lbl">Suspension System:</td><td>{susp_txt}</td></tr>
+                <tr><td class="lbl">Foot / Knee Unit:</td><td>{foot_txt} / {knee_txt if knee_txt else '-'}</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="sec-head">5. สังคมและการใช้งาน (Social & Mobility)</div>
+            <table>
+                <tr><td class="lbl">อุปกรณ์ช่วยเดิน:</td><td>{get_txt(st.session_state.assist, 'assist_ot')}</td></tr>
+                <tr><td class="lbl">การใช้งาน (ยืน / เดิน):</td><td>{st.session_state.stand_hr} ต่อวัน / {st.session_state.walk_hr} ต่อวัน</td></tr>
+                <tr><td class="lbl">ประวัติล้ม (6 เดือน):</td><td>{st.session_state.fall} {f'(ถี่ {st.session_state.fall_freq}, บาดเจ็บ: {st.session_state.fall_inj})' if st.session_state.fall == 'มี' else ''}</td></tr>
+                <tr><td class="lbl">ปัญหาสังคม (ตนเอง/ผู้อื่น):</td><td>{st.session_state.q31_1} / {st.session_state.q31_2}</td></tr>
+                <tr><td class="lbl">ปัญหางาน (ตนเอง/ผู้อื่น):</td><td>{st.session_state.q32_1} / {st.session_state.q32_2}</td></tr>
+                <tr><td class="lbl">การสนับสนุน (ครอบครัว/องค์กร):</td><td>{st.session_state.supp_fam} / {st.session_state.supp_org} ({supp_src_txt if st.session_state.supp_org == 'ใช่' else '-'})</td></tr>
+            </table>
+        </div>
 
         <div class="tug-box">
             <h3>ผล TUG Test</h3>
