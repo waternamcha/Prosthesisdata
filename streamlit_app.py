@@ -262,7 +262,6 @@ def create_html():
         <div class="section">
             <div class="sec-head">3. ข้อมูลการฟื้นฟู (Rehabilitation)</div>
             <table>
-                <tr><td class="lbl">18. บุคลากรที่ดูแล:</td><td>{personnel_txt}</td></tr>
                 <tr><td class="lbl">19. ประวัติการฟื้นฟู:</td><td>{st.session_state.rehab}</td></tr>
                 <tr><td class="lbl">กิจกรรมที่เคยทำ:</td><td>{rehab_act_txt if st.session_state.rehab == 'เคย' else '-'}</td></tr>
             </table>
